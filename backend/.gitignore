@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+.env
+.env.*
+*.db
+*.log
+instance/
+.webassets-cache
+# VSCode
+.vscode/
+# Docker
+*.pid
+# OS
+.DS_Store
+Thumbs.db
+# Virtualenv
+venv/
+ENV/
+.envrc
+# Test
+htmlcov/
+.coverage
+.tox/
+.pytest_cache/
+# Misc
+*.bak
+*.swp
+# Local config
+local_settings.py

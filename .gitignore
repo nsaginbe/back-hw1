@@ -1,0 +1,17 @@
+# Global
+.vscode/
+.env
+.env.*
+*.log
+*.tmp
+*.swp
+# Docker
+**/db_data/
+# Python
+**/__pycache__/
+**/*.pyc
+# Node
+**/node_modules/
+# OS
+.DS_Store
+Thumbs.db
