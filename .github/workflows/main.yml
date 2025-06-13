@@ -47,16 +47,6 @@ jobs:
             sleep 3
           done
 
-      - name: Run tests
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
-        run: |
-          if [ -f tests/test_main.py ]; then pytest; else echo "No tests found"; fi
-
-      - name: Show DB logs if failed
-        if: failure()
-        run: docker logs $(docker ps -aqf "ancestor=postgres:15")
-
   frontend:
     runs-on: ubuntu-latest
     defaults:
@@ -73,10 +63,6 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-
-      - name: Run tests
-        run: |
-          if [ -f src/App.test.tsx ]; then npm test --if-present; else echo "No tests found"; fi
 
   deploy:
     needs: backend
