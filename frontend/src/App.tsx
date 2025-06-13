@@ -12,11 +12,19 @@ function App() {
 
   const { data: users = [], isLoading, error } = useQuery('users', userApi.getUsers, {
     retry: 1,
+    onSuccess: (data) => {
+      console.log('Successfully fetched users:', data)
+    },
     onError: (error: any) => {
       console.error('Query error:', error)
+      console.error('Error details:', error.response?.data)
       toast.error(error.response?.data?.detail || 'Failed to fetch users')
     }
   })
+
+  console.log('Current users state:', users)
+  console.log('Loading state:', isLoading)
+  console.log('Error state:', error)
 
   const createUserMutation = useMutation(userApi.createUser, {
     onSuccess: () => {

@@ -5,33 +5,45 @@ const api = axios.create({
   baseURL: 'http://localhost:8000',
 });
 
-// Add request interceptor for logging
-api.interceptors.request.use(request => {
-  console.log('Starting Request:', request);
-  return request;
-});
-
-// Add response interceptor for logging
-api.interceptors.response.use(
-  response => {
-    console.log('Response:', response);
-    return response;
+// Add request interceptor
+api.interceptors.request.use(
+  (config) => {
+    console.log('Making request to:', config.url)
+    console.log('Request method:', config.method)
+    console.log('Request data:', config.data)
+    return config
   },
-  error => {
-    console.error('API Error:', error.response || error);
-    return Promise.reject(error);
+  (error) => {
+    console.error('Request error:', error)
+    return Promise.reject(error)
   }
-);
+)
+
+// Add response interceptor
+api.interceptors.response.use(
+  (response) => {
+    console.log('Response received:', response.status)
+    console.log('Response data:', response.data)
+    return response
+  },
+  (error) => {
+    console.error('Response error:', error)
+    console.error('Error status:', error.response?.status)
+    console.error('Error data:', error.response?.data)
+    return Promise.reject(error)
+  }
+)
 
 export const userApi = {
   getUsers: async (): Promise<User[]> => {
+    console.log('Fetching users...')
     try {
-      const response = await api.get('/users/');
-      console.log('Users data:', response.data);
-      return response.data;
+      const response = await api.get<User[]>('/users')
+      console.log('Users fetched successfully:', response.data)
+      return response.data
     } catch (error) {
-      console.error('Error fetching users:', error);
-      throw error;
+      console.error('Error fetching users:', error)
+      throw error
     }
   },
 

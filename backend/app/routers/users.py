@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app import crud, schemas, database
+import logging
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -14,7 +15,9 @@ async def create_user(user: schemas.UserCreate, db: AsyncSession = Depends(datab
 
 @router.get("/", response_model=List[schemas.UserRead])
 async def read_users(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(database.get_db)):
+    logging.info("Fetching users with skip=%d, limit=%d", skip, limit)
     users = await crud.get_users(db, skip=skip, limit=limit)
+    logging.info("Retrieved %d users", len(users))
     return users
 
 @router.get("/{user_id}", response_model=schemas.UserRead)

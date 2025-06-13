@@ -19,7 +19,8 @@ async def get_user_by_email(db: AsyncSession, email: str):
 
 async def get_users(db: AsyncSession, skip: int = 0, limit: int = 100):
     result = await db.execute(select(models.User).offset(skip).limit(limit))
-    return result.scalars().all()
+    users = result.scalars().all()
+    return [schemas.UserRead.model_validate(user).model_dump() for user in users]
 
 async def update_user(db: AsyncSession, user_id: int, user: schemas.UserUpdate):
     db_user = await get_user(db, user_id)
