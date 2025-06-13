@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:15
@@ -5,11 +7,11 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: back_hw1_db
+      POSTGRES_DB: postgres
     ports:
       - '5432:5432'
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -17,17 +19,17 @@ services:
       retries: 5
 
   backend:
-    build: ./backend
-    environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/back_hw1_db
+    image: ghcr.io/${GITHUB_REPOSITORY:-your-username/your-repo}/backend:latest
     ports:
       - '8000:8000'
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
     depends_on:
       db:
         condition: service_healthy
 
   frontend:
-    image: node:20-alpine
+    image: ghcr.io/${GITHUB_REPOSITORY:-your-username/your-repo}/frontend:latest
     working_dir: /app
     volumes:
       - ./frontend:/app
@@ -39,4 +41,4 @@ services:
       - backend
 
 volumes:
-  db_data:
+  postgres_data:
