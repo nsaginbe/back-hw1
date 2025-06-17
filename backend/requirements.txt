@@ -6,3 +6,7 @@ python-dotenv
 pydantic
 pydantic[email]
 pydantic-settings
+redis
+aioredis
+celery
+flower

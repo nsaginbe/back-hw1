@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_DB: back_hw1_db
     ports:
       - '5432:5432'
     volumes:
@@ -18,27 +18,82 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   backend:
-    image: ghcr.io/${GITHUB_REPOSITORY:-your-username/your-repo}/backend:latest
+    build: ./backend
     ports:
       - '8000:8000'
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/back_hw1_db
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./backend:/app
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery_worker:
+    build: ./backend
+    command: celery -A celery_worker.celery_app worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/back_hw1_db
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - redis
+      - backend
+
+  flower:
+    build: ./backend
+    command: celery -A celery_worker.celery_app flower --port=5555
+    ports:
+      - '5555:5555'
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - redis
+      - celery_worker
 
   frontend:
-    image: ghcr.io/${GITHUB_REPOSITORY:-your-username/your-repo}/frontend:latest
-    working_dir: /app
+    build: 
+      context: ./frontend
+      target: build  # Use the build stage for development
+    ports:
+      - '5173:5173'
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
-    ports:
-      - '5173:5173'
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+    environment:
+      - VITE_API_URL=http://localhost:8000
     depends_on:
       - backend
 
+  # Production frontend service (commented out for development)
+  # frontend-prod:
+  #   build: 
+  #     context: ./frontend
+  #     target: nginx  # Use the nginx stage for production
+  #   ports:
+  #     - '80:80'
+  #   depends_on:
+  #     - backend
+
 volumes:
   postgres_data:
+  redis_data:

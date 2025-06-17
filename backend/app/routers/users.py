@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app import crud, schemas, database
+from app.tasks.user_tasks import send_welcome_email, process_user_data, cleanup_inactive_users
 import logging
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -11,7 +12,10 @@ async def create_user(user: schemas.UserCreate, db: AsyncSession = Depends(datab
     existing_user = await crud.get_user_by_email(db, user.email)
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    return await crud.create_user(db, user)
+    db_user = await crud.create_user(db, user)
+    # Trigger welcome email task
+    send_welcome_email.delay(user.email)
+    return db_user
 
 @router.get("/", response_model=List[schemas.UserRead])
 async def read_users(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(database.get_db)):
@@ -45,3 +49,24 @@ async def delete_user(user_id: int, db: AsyncSession = Depends(database.get_db))
     if not deleted_user:
         raise HTTPException(status_code=404, detail="User not found")
     return deleted_user
+
+# Test endpoint for Celery tasks
+@router.post("/test-celery/{user_id}")
+async def test_celery(user_id: int, db: AsyncSession = Depends(database.get_db)):
+    user = await crud.get_user(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Trigger multiple tasks
+    email_task = send_welcome_email.delay(user.email)
+    process_task = process_user_data.delay(user_id)
+    cleanup_task = cleanup_inactive_users.delay()
+    
+    return {
+        "message": "Tasks triggered successfully",
+        "tasks": {
+            "email_task_id": email_task.id,
+            "process_task_id": process_task.id,
+            "cleanup_task_id": cleanup_task.id
+        }
+    }

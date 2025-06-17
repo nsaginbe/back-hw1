@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import users
 from app import models, database
+from app.core.redis import close_redis_connection
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -14,6 +15,7 @@ async def lifespan(app: FastAPI):
     finally:
         # Shutdown
         await database.engine.dispose()
+        await close_redis_connection()
 
 app = FastAPI(lifespan=lifespan)
 

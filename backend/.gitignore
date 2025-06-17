@@ -4,30 +4,66 @@ __pycache__/
 *.pyo
 *.pyd
 *.sqlite3
-.env
-.env.*
 *.db
-*.log
 instance/
 .webassets-cache
-# VSCode
+
+# Environment
+.env
+.env.*
+!.env.example
+.envrc
+.python-version
+
+# Virtual Environment
+venv/
+.venv/
+ENV/
+
+# IDE
 .vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
 # Docker
 *.pid
+db_data/
+redis_data/
+
 # OS
 .DS_Store
 Thumbs.db
-# Virtualenv
-venv/
-ENV/
-.envrc
-# Test
+desktop.ini
+
+# Testing
 htmlcov/
 .coverage
 .tox/
 .pytest_cache/
-# Misc
-*.bak
-*.swp
-# Local config
+.nox/
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+
+# Logs
+logs/
+*.log
+celerybeat-schedule
+celerybeat.pid
+
+# Cache
+.cache/
+__pycache__/
+.pytest_cache/
+
+# Local development
 local_settings.py
+db.sqlite3
+instance/
+.webassets-cache
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
